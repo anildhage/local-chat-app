@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Local Chat App</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 24px; }
+    textarea, input, button { width: 100%; margin: 6px 0; padding: 10px; }
+    pre { background: #f5f5f5; padding: 12px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>Local Chat App</h1>
+  <label for="query">Question</label>
+  <textarea id="query" rows="4"></textarea>
+  <button id="submit">Ask</button>
+  <h2>Answer</h2>
+  <pre id="answer"></pre>
+  <h2>Sources</h2>
+  <ul id="sources"></ul>
+
+  <script>
+    const apiBase = "http://localhost:8000";
+    const submit = document.getElementById("submit");
+    const queryEl = document.getElementById("query");
+    const answerEl = document.getElementById("answer");
+    const sourcesEl = document.getElementById("sources");
+
+    submit.addEventListener("click", async () => {
+      const query = queryEl.value.trim();
+      if (!query) return;
+      answerEl.textContent = "Thinking...";
+      sourcesEl.innerHTML = "";
+      const response = await fetch(`${apiBase}/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query }),
+      });
+      const data = await response.json();
+      answerEl.textContent = data.answer || data.detail || "No answer";
+      if (data.sources) {
+        data.sources.forEach(source => {
+          const li = document.createElement("li");
+          li.textContent = source.path;
+          sourcesEl.appendChild(li);
+        });
+      }
+    });
+  </script>
+</body>
+</html>
