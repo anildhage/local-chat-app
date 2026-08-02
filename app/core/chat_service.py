@@ -20,10 +20,11 @@ class ChatService:
             top_k = self.config.get("max_retrieved_chunks", 5)
         return self.retrieval_service.search(query, top_k=top_k)
 
-    def chat(self, query: str) -> Dict[str, Any]:
+    def chat(self, query: str, chat_model: str = None) -> Dict[str, Any]:
+        model = chat_model or self.config["chat_model"]
         sources = self.search(query)
         messages = self.prompt_service.build_chat_prompt(query, sources)
-        answer = self.client.chat(self.config["chat_model"], messages)
+        answer = self.client.chat(model, messages)
         return {
             "query": query,
             "answer": answer,

@@ -1,7 +1,7 @@
 import argparse
 from pathlib import Path
 
-from app.core.config import load_config
+from app.core.config import load_config, set_active_model, set_active_profile
 from app.core.logger import get_logger
 from app.core.model_service import get_client
 from app.core.chat_service import ChatService
@@ -11,9 +11,12 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Local chat app CLI")
     parser.add_argument("command", choices=["chat", "search", "index", "config"], help="Command to run")
     parser.add_argument("query", nargs="?", help="User query for chat or search")
-    parser.add_argument("--profile", help="Override active model profile")
+    parser.add_argument("--profile", help="Override active model profile for this run")
     parser.add_argument("--top-k", type=int, default=5, help="Number of search results")
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
+    parser.add_argument("--set-profile", help="Persistently set the active profile in config")
+    parser.add_argument("--set-model", help="Persistently set the active chat model in config")
+    parser.add_argument("--set-embedding-model", help="Persistently set the active embedding model in config")
     args = parser.parse_args()
 
     config = load_config()
@@ -25,6 +28,11 @@ def main() -> None:
         else:
             raise ValueError(f"Unknown profile: {args.profile}")
 
+    if args.set_profile:
+        config = set_active_profile(args.set_profile)
+    elif args.set_model:
+        config = set_active_model(args.set_model, args.set_embedding_model)
+
     config["debug"] = args.debug
     logger = get_logger(debug=args.debug)
     client = get_client(config)
@@ -32,7 +40,7 @@ def main() -> None:
 
     if args.command == "index":
         result = service.index_notes()
-        logger.info("Indexed %d notes.", len(result.get("notes", [])))
+        logger.info("Indexed %d chunks.", len(result.get("chunks", [])))
     elif args.command == "chat":
         if not args.query:
             raise ValueError("Query is required for chat")
