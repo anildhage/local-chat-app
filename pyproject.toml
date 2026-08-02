@@ -10,4 +10,4 @@ readme = "README.md"
 requires-python = ">=3.8"
 
 [project.scripts]
-botzapp = "app.interfaces.cli.main:main"
+botzapp-cli = "app.interfaces.cli.main:main"
