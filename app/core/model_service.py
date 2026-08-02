@@ -127,6 +127,37 @@ class OllamaClient:
         except Exception:
             return []
 
+    def list_available_models(self) -> List[str]:
+        try:
+            result = subprocess.run(
+                ["ollama", "list"],
+                capture_output=True,
+                text=True,
+                timeout=20,
+                check=False,
+            )
+            if result.returncode != 0:
+                return []
+
+            models: List[str] = []
+            for line in result.stdout.splitlines():
+                line = line.strip()
+                if not line or line.startswith("NAME"):
+                    continue
+                parts = line.split()
+                if parts:
+                    models.append(parts[0])
+            return models
+        except Exception:
+            return []
+
+    def stop_all_models(self) -> List[str]:
+        stopped: List[str] = []
+        for model in self.list_running_models():
+            if self.stop_model(model):
+                stopped.append(model)
+        return stopped
+
     def stop_model(self, model: str) -> bool:
         try:
             result = subprocess.run(
