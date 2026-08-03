@@ -86,22 +86,30 @@ class OllamaClient:
         return self._validate_embeddings(model, texts, embeddings)
 
     def embeddings(self, model: str, texts: List[str]) -> List[List[float]]:
-        try:
-            response = requests.post(
-                f"{self.base_url}/api/embeddings",
-                json={"model": model, "input": texts},
-                timeout=30,
-            )
-            response.raise_for_status()
-            data = response.json()
-            return self._parse_embedding_response(model, texts, data)
-        except (requests.RequestException, ValueError) as first_exc:
+        embeddings: List[List[float]] = []
+        errors: List[str] = []
+
+        for i, text in enumerate(texts):
             try:
-                return self._ollama_run_embeddings(model, texts)
-            except Exception as fallback_exc:
-                raise RuntimeError(
-                    f"Ollama embeddings failed via HTTP and fallback: {first_exc}; {fallback_exc}"
-                ) from fallback_exc
+                response = requests.post(
+                    f"{self.base_url}/api/embeddings",
+                    json={"model": model, "prompt": text},
+                    timeout=30,
+                )
+                response.raise_for_status()
+                data = response.json()
+                parsed = self._parse_embedding_response(model, [text], data)
+                embeddings.append(parsed[0])
+            except (requests.RequestException, ValueError, KeyError, IndexError) as exc:
+                errors.append(f"input {i}: {exc}")
+
+        if errors:
+            raise RuntimeError(
+                f"Ollama embeddings failed for model {model}: {'; '.join(errors[:3])}"
+            )
+
+        return self._validate_embeddings(model, texts, embeddings)
+
 
     def list_running_models(self) -> List[str]:
         try:

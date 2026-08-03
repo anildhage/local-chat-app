@@ -11,6 +11,7 @@ def print_help() -> None:
     print("Available commands:")
     print("  /help                Show this help text")
     print("  /bye                 Exit interactive chat")
+    print("  /index               Rebuild the note index from the vault")
     print("  /list-models         Show running Ollama models")
     print("  /offload <model>     Unload a running Ollama model")
     print("  /model <name>        Switch active chat model and persist it")
@@ -20,6 +21,7 @@ def print_help() -> None:
     print("")
     print("Examples:")
     print("  /list-models")
+    print("  /index")
     print("  /offload qwen2.5-coder:1.5b")
     print("  /model qwen2.5-coder:1.5b")
     print("  /model qwen2.5-coder:1.5b qwen2.5-coder:1.5b")
@@ -120,6 +122,17 @@ def main() -> None:
             else:
                 print("No running models.")
 
+        def refresh_index() -> None:
+            try:
+                result = service.index_notes()
+                print(f"Indexed {len(result.get('chunks', []))} chunks.")
+                if result.get("last_refreshed"):
+                    print(f"Last refreshed: {result.get('last_refreshed')}")
+            except FileNotFoundError as exc:
+                print(f"Index refresh failed: {exc}")
+            except Exception as exc:
+                print(f"Index refresh failed: {exc}")
+
         if args.query:
             run_chat(args.query)
         else:
@@ -178,6 +191,9 @@ def main() -> None:
                     continue
                 if normalized == "/status":
                     print_status()
+                    continue
+                if normalized in {"/index", "/refresh", "/refresh-index"}:
+                    refresh_index()
                     continue
                 run_chat(prompt)
     elif args.command == "search":
