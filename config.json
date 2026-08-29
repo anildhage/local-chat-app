@@ -1,0 +1,24 @@
+{
+  "vault_path": "/Users/anildhage/Downloads/anil",
+  "ollama_url": "http://localhost:11434",
+  "embedding_model": "nomic-embed-text:latest",
+  "chat_model": "qwen2.5-coder:1.5b",
+  "active_profile": "custom",
+  "profiles": {
+    "fast-local": {
+      "embedding_model": "qwen2.5-coder:1.5b",
+      "chat_model": "qwen2.5-coder:1.5b"
+    },
+    "balanced-local": {
+      "embedding_model": "qwen2.5-coder:1.5b",
+      "chat_model": "qwen2.5-coder:1.5b"
+    },
+    "large-local": {
+      "embedding_model": "qwen2.5-coder:1.5b",
+      "chat_model": "qwen2.5-coder:1.5b"
+    }
+  },
+  "index_path": "./app/data/indexes",
+  "max_retrieved_chunks": 5,
+  "debug": false
+}
